@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Petualangan Kapal Selam Numerasi: Solo & Duel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #021024;
+    }
+
+    .font-fredoka {
+      font-family: 'Fredoka One', cursive;
+    }
+
+    /* Directional Touch Controller Styles */
+    .ctrl-btn {
+      touch-action: none;
+      user-select: none;
+      transition: transform 0.08s ease, filter 0.08s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 2px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .ctrl-btn:active, .ctrl-btn.active {
+      transform: scale(0.92) translateY(2px);
+      filter: brightness(1.25);
+    }
+
+    /* Oxygen Low Alarm Pulse */
+    @keyframes low-o2-pulse {
+      0%, 100% { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+      50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 22px rgba(239, 68, 68, 0.9); }
+    }
+
+    .o2-alert {
+      animation: low-o2-pulse 0.9s infinite;
+    }
+
+    /* Shake Screen Effect */
+    @keyframes shake-anim {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-5px, 3px); }
+      50% { transform: translate(5px, -3px); }
+      75% { transform: translate(-3px, -2px); }
+    }
+
+    .shake-active {
+      animation: shake-anim 0.3s ease-in-out;
+    }
+    
+    /* 3D Game Style UI Styling to match game artwork */
+    .title-petualangan {
+      font-family: 'Fredoka One', cursive;
+      color: #e0f2fe;
+      text-shadow: 0 4px 0 #0284c7, 0 6px 0 #0369a1, 0 8px 12px rgba(0,0,0,0.6);
+      -webkit-text-stroke: 2px #0369a1;
+    }
+    .title-kapal-selam {
+      font-family: 'Fredoka One', cursive;
+      background: linear-gradient(180deg, #fef08a 0%, #facc15 45%, #ea580c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 0 #9a3412) drop-shadow(0 7px 10px rgba(0,0,0,0.7));
+    }
+    .game-ribbon {
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.4);
+    }
+    .badge-pill-header {
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.5);
+    }
+    .glossy-panel {
+      background: linear-gradient(180deg, rgba(14, 116, 144, 0.45) 0%, rgba(3, 105, 161, 0.4) 100%);
+      border: 3px solid #38bdf8;
+      box-shadow: inset 0 2px 6px rgba(255,255,255,0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .btn-start-glossy {
+      background: linear-gradient(180deg, #fde047 0%, #eab308 50%, #ca8a04 100%);
+      box-shadow: 0 6px 0 #854d0e, 0 10px 20px rgba(0,0,0,0.4), inset 0 2px 2px #fef9c3;
+      transition: all 0.12s ease;
+    }
+    .btn-start-glossy:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 8px 0 #854d0e, 0 14px 25px rgba(0,0,0,0.5), inset 0 2px 2px #fef9c3;
+    }
+    .btn-start-glossy:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #854d0e, 0 4px 10px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center p-0 m-0 text-white select-none overflow-hidden bg-slate-950">
+
+  <div id="gameFrame" class="relative w-full h-full flex flex-col bg-slate-950 shadow-none overflow-hidden border-0 rounded-none">
+    
+    <!-- Top Shared Header: Title, Global Progress, Audio Mute, and Exit -->
+    <header class="h-14 sm:h-16 px-3 sm:px-6 bg-slate-900/95 border-b border-cyan-500/30 flex items-center justify-between gap-2 z-30">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="text-2xl sm:text-3xl animate-bounce">🛥️</span>
+        <div>
+          <h1 class="font-fredoka text-sm sm:text-base text-yellow-400 leading-tight">PETUALANGAN KAPAL SELAM</h1>
+          <p id="gameModeBadge" class="text-[10px] sm:text-xs text-cyan-300 font-extrabold uppercase">Mode: Solo (1 Pemain)</p>
+        </div>
+      </div>
+
+      <!-- Distance Progress Banner -->
+      <div class="flex flex-col items-center w-40 sm:w-64">
+        <div class="flex justify-between w-full text-[10px] sm:text-xs font-black text-slate-300 mb-1">
+          <span class="hidden sm:inline">JARAK KE FINISH</span>
+          <span class="sm:hidden">FINISH</span>
+          <span id="raceLeaderDistText" class="text-amber-400 font-mono">0 / 5000m</span>
+        </div>
+        <div class="relative w-full h-2.5 sm:h-3.5 bg-slate-950 rounded-full border border-cyan-500/40 p-0.5 overflow-hidden">
+          <div id="globalProgressBar" class="h-full bg-gradient-to-r from-cyan-400 via-amber-400 to-emerald-400 rounded-full transition-all duration-100" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Utility Controls -->
+      <div class="flex items-center gap-2">
+        <button id="audioToggleBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-yellow-300 text-sm border border-slate-600 font-black shadow transition">
+          🔊
+        </button>
+        <button id="menuReturnBtn" class="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow transition">
+          MENU
+        </button>
+      </div>
+    </header>
+
+    <!-- Canvas Simulation Area -->
+    <div class="relative flex-1 w-full h-full overflow-hidden bg-slate-950">
+      <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+      <!-- ==================== PLAYER 1 OVERLAYS ==================== -->
+      <!-- P1 Left-Hand Directional Controller (Hidden on start screen) -->
+      <div id="p1CtrlPanel" class="absolute left-2 sm:left-4 z-20 flex flex-col items-center gap-1.5 sm:gap-2 bg-slate-950/80 border-2 border-yellow-400/70 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 backdrop-blur-md shadow-lg hidden">
+        <span class="text-[9px] sm:text-[10px] font-black text-yellow-300 uppercase">P1 KEMUDI</span>
+        <button id="p1BtnUp" class="ctrl-btn w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-t from-amber-600 to-yellow-400 text-slate-950 font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-yellow-200 cursor-pointer">
+          ▲
+        </button>
+        <button id="p1BtnDown" class="ctrl-btn w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-600 text-slate-950 font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-yellow-200 cursor-pointer">
+          ▼
+        </button>
+        <span class="text-[8px] sm:text-[9px] text-yellow-200/90 font-mono font-bold">[W / S]</span>
+      </div>
+
+      <!-- P1 Oxygen Status 10-Bar (Hidden on start screen) -->
+      <div id="p1OxygenBox" class="absolute z-20 flex flex-col items-center bg-slate-950/85 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl border-2 border-yellow-400/60 transition-all duration-300 hidden">
+        <div class="flex items-center justify-between w-full text-[9px] sm:text-[11px] font-black mb-1">
+          <span class="flex items-center gap-1 text-yellow-300">
+            <span>🫧</span> <span id="p1OxygenLabel">P1 OKSIGEN</span>
+          </span>
+          <span id="p1OxygenText" class="text-white font-fredoka ml-2 text-xs">10/10 BAR</span>
+        </div>
+        <div id="p1BarGrid" class="flex items-center gap-1 h-3 sm:h-4 bg-slate-900 px-1 py-0.5 rounded-lg border border-slate-700"></div>
+      </div>
+
+      <!-- P1 Independent Math Trivia Card -->
+      <div id="p1QuizCard" class="absolute z-30 bg-slate-900/95 border-3 sm:border-4 border-amber-400 text-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-2xl backdrop-blur-md hidden transition-all max-w-[320px] sm:max-w-sm w-11/12">
+        <div class="flex items-center justify-between border-b border-amber-400/30 pb-1.5 mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xl">🧪</span>
+            <span class="font-fredoka text-xs sm:text-sm text-yellow-300">P1 TABUNG O₂ DIAMBIL!</span>
+          </div>
+          <span id="p1QuizTimer" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 font-mono text-amber-300 font-black border border-amber-400/40">⏸️ JEDA</span>
+        </div>
+        <div id="p1QuizExpr" class="text-2xl sm:text-3xl font-fredoka text-center text-yellow-400 py-1 sm:py-2 bg-slate-950/70 rounded-xl border border-yellow-500/30 my-1 tracking-wider">
+          7 + 5 = ?
+        </div>
+        <div id="p1QuizChoices" class="grid grid-cols-3 gap-1.5 sm:gap-2 mt-2"></div>
+        <div class="text-[9px] sm:text-[10px] text-amber-200/80 text-center mt-1.5 font-bold">
+          Pilih tombol atau tekan <span class="text-white font-mono bg-slate-800 px-1 rounded">[1] [2] [3]</span>
+        </div>
+      </div>
+
+      <!-- ==================== PLAYER 2 OVERLAYS (Duel Split Screen) ==================== -->
+      <!-- P2 Right-Hand Directional Controller -->
+      <div id="p2CtrlPanel" class="absolute right-2 sm:right-4 z-20 flex flex-col items-center gap-1.5 sm:gap-2 bg-slate-950/80 border-2 border-emerald-400/70 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 backdrop-blur-md shadow-lg hidden">
+        <span class="text-[9px] sm:text-[10px] font-black text-emerald-300 uppercase">P2 KEMUDI</span>
+        <button id="p2BtnUp" class="ctrl-btn w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-t from-emerald-600 to-teal-400 text-slate-950 font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-emerald-200 cursor-pointer">
+          ▲
+        </button>
+        <button id="p2BtnDown" class="ctrl-btn w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-b from-teal-400 to-emerald-600 text-slate-950 font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-emerald-200 cursor-pointer">
+          ▼
+        </button>
+        <span class="text-[8px] sm:text-[9px] text-emerald-200/90 font-mono font-bold">[↑ / ↓]</span>
+      </div>
+
+      <!-- P2 Oxygen Status 10-Bar -->
+      <div id="p2OxygenBox" class="absolute z-20 flex flex-col items-center bg-slate-950/85 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl border-2 border-emerald-400/60 transition-all duration-300 hidden">
+        <div class="flex items-center justify-between w-full text-[9px] sm:text-[11px] font-black mb-1">
+          <span class="flex items-center gap-1 text-emerald-300">
+            <span>🫧</span> <span>P2 OKSIGEN</span>
+          </span>
+          <span id="p2OxygenText" class="text-white font-fredoka ml-2 text-xs">10/10 BAR</span>
+        </div>
+        <div id="p2BarGrid" class="flex items-center gap-1 h-3 sm:h-4 bg-slate-900 px-1 py-0.5 rounded-lg border border-slate-700"></div>
+      </div>
+
+      <!-- P2 Independent Math Trivia Card -->
+      <div id="p2QuizCard" class="absolute z-30 bg-slate-900/95 border-3 sm:border-4 border-emerald-400 text-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-2xl backdrop-blur-md hidden transition-all max-w-[320px] sm:max-w-sm w-11/12">
+        <div class="flex items-center justify-between border-b border-emerald-400/30 pb-1.5 mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xl">🧪</span>
+            <span class="font-fredoka text-xs sm:text-sm text-emerald-300">P2 TABUNG O₂ DIAMBIL!</span>
+          </div>
+          <span id="p2QuizTimer" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 font-mono text-emerald-300 font-black border border-emerald-400/40">⏸️ JEDA</span>
+        </div>
+        <div id="p2QuizExpr" class="text-2xl sm:text-3xl font-fredoka text-center text-teal-300 py-1 sm:py-2 bg-slate-950/70 rounded-xl border border-emerald-500/30 my-1 tracking-wider">
+          9 × 3 = ?
+        </div>
+        <div id="p2QuizChoices" class="grid grid-cols-3 gap-1.5 sm:gap-2 mt-2"></div>
+        <div class="text-[9px] sm:text-[10px] text-emerald-200/80 text-center mt-1.5 font-bold">
+          Pilih tombol atau tekan <span class="text-white font-mono bg-slate-800 px-1 rounded">[7] [8] [9]</span>
+        </div>
+      </div>
+
+      <!-- Toast Feedback Notifications -->
+      <div id="p1Toast" class="absolute pointer-events-none transition-all duration-300 opacity-0 scale-75 font-fredoka text-xs sm:text-sm z-40 px-3 py-1.5 rounded-xl border"></div>
+      <div id="p2Toast" class="absolute pointer-events-none transition-all duration-300 opacity-0 scale-75 font-fredoka text-xs sm:text-sm z-40 px-3 py-1.5 rounded-xl border hidden"></div>
+    </div>
+
+    <!-- Footer Bar with Quick Tips -->
+    <footer class="h-9 sm:h-10 bg-slate-950 border-t border-cyan-500/20 px-3 sm:px-4 flex items-center justify-between text-[10px] sm:text-xs text-slate-400 font-bold z-30">
+      <div class="flex items-center gap-2 truncate mr-2">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
+        <span id="controlTipText" class="truncate">Kemudi di sebelah kiri kapal: Tombol ▲ / ▼ atau Keyboard</span>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0 mr-28 sm:mr-32">
+        <div class="hidden md:flex items-center gap-3 text-cyan-300 font-mono">
+          <span>🧪 +2 O₂ & Turbo</span>
+          <span class="text-rose-400">🪸 -1 O₂ Rintangan</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ==================== START / MODE SELECTION MODAL ==================== -->
+    <div id="startModal" class="absolute inset-0 bg-transparent z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div class="relative w-full max-w-4xl max-h-[96vh] p-2 sm:p-4 text-center bg-transparent shadow-none overflow-hidden flex flex-col justify-between border-0">
+
+        <!-- TOP BAR: 3D Title (Center) -->
+        <div class="relative z-10 flex flex-col items-center justify-center mb-2 sm:mb-3">
+          <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+            <span class="text-3xl sm:text-4xl drop-shadow-lg -rotate-12 hover:rotate-0 transition-transform">🚤</span>
+            <span class="title-petualangan text-xl sm:text-2xl md:text-3xl tracking-wide uppercase">PETUALANGAN</span>
+          </div>
+          <div class="title-kapal-selam text-3xl sm:text-4xl md:text-5xl font-black tracking-wider uppercase -mt-1 sm:-mt-2">
+            KAPAL SELAM
+          </div>
+          <!-- Blue 3D Ribbon Subtitle -->
+          <div class="game-ribbon px-4 sm:px-6 py-1 rounded-full text-white font-fredoka text-[11px] sm:text-xs md:text-sm tracking-wide mt-1 border border-sky-300/60 shadow-lg">
+            Misi Numerasi Matematika Bawah Laut
+          </div>
+        </div>
+
+        <!-- ==================== MAIN CONFIG SECTIONS ==================== -->
+        <div class="relative z-10 space-y-2.5 sm:space-y-3">
+          
+          <!-- 1. MODE SELECTION SECTION -->
+          <div class="glossy-panel rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 pt-3 sm:pt-3.5 relative max-w-2xl mx-auto w-full">
+            <span class="absolute -top-3 left-4 badge-pill-header px-3 py-0.5 rounded-full font-fredoka text-[10px] sm:text-xs text-white uppercase tracking-wider border border-white/40">
+              PILIH MODE PERMAINAN
+            </span>
+            <div class="grid grid-cols-2 gap-2 sm:gap-3.5 items-center">
+              <!-- Mode Solo (Custom Graphic Button) -->
+              <button id="modeSoloBtn" type="button" class="relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-amber-300 ring-2 sm:ring-4 ring-yellow-400/50 shadow-[0_0_14px_rgba(250,204,21,0.6)] cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-100">
+                <img src="https://lh3.googleusercontent.com/d/1QId4g3ROrjPvnP1VllzJL-lxq4DMSP7_" 
+                     alt="1 Pemain (Solo)" 
+                     class="w-full h-auto object-contain rounded-[16px] sm:rounded-[20px] pointer-events-none transition-all duration-200 block" 
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=1QId4g3ROrjPvnP1VllzJL-lxq4DMSP7_&sz=w1000';" />
+              </button>
+
+              <!-- Mode Duel (Custom Graphic Button) -->
+              <button id="modeDuelBtn" type="button" class="relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90">
+                <img src="https://lh3.googleusercontent.com/d/17FMSeypCLvijLVs7Yvmj2ocyPPPobgYT" 
+                     alt="2 Pemain (Duel)" 
+                     class="w-full h-auto object-contain rounded-[16px] sm:rounded-[20px] pointer-events-none transition-all duration-200 block" 
+                     style="filter: brightness(0.75) grayscale(25%); opacity: 0.7;"
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=17FMSeypCLvijLVs7Yvmj2ocyPPPobgYT&sz=w1000';" />
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. MATHEMATICAL OPERATIONS SECTION -->
+          <div class="glossy-panel rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 relative">
+            <div class="flex items-center justify-between">
+              <span class="absolute -top-3 left-4 badge-pill-header px-3 py-0.5 rounded-full font-fredoka text-[10px] sm:text-xs text-white uppercase tracking-wider border border-white/40">
+                OPERASI MATEMATIKA (PILIH MINIMAL 1)
+              </span>
+              <span id="opWarningText" class="absolute -top-3 right-4 text-[10px] text-amber-300 font-bold bg-slate-950/90 px-2 py-0.5 rounded-full border border-amber-400 hidden">
+                Minimal 1 operasi aktif!
+              </span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2.5 mt-1.5">
+              <!-- Tambah (+) -->
+              <label class="op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-emerald-400 bg-gradient-to-b from-emerald-400 to-emerald-600 text-white cursor-pointer shadow-md transition active:scale-95">
+                <input type="checkbox" id="opAdd" value="add" checked class="hidden" />
+                <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white text-emerald-700 font-black text-base flex items-center justify-center shrink-0 shadow-inner">➕</span>
+                <span class="font-fredoka text-xs sm:text-sm font-bold">Tambah</span>
+                <span class="op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-200 border border-emerald-800 text-emerald-950 text-[10px] font-black flex items-center justify-center">✓</span>
+              </label>
+
+              <!-- Kurang (-) -->
+              <label class="op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-emerald-400 bg-gradient-to-b from-emerald-400 to-emerald-600 text-white cursor-pointer shadow-md transition active:scale-95">
+                <input type="checkbox" id="opSub" value="sub" checked class="hidden" />
+                <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white text-emerald-700 font-black text-base flex items-center justify-center shrink-0 shadow-inner">➖</span>
+                <span class="font-fredoka text-xs sm:text-sm font-bold">Kurang</span>
+                <span class="op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-200 border border-emerald-800 text-emerald-950 text-[10px] font-black flex items-center justify-center">✓</span>
+              </label>
+
+              <!-- Kali (×) -->
+              <label class="op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-sky-400/60 bg-gradient-to-b from-sky-600/90 to-blue-700/90 text-sky-100 cursor-pointer shadow-md transition active:scale-95">
+                <input type="checkbox" id="opMul" value="mul" class="hidden" />
+                <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-sky-900 text-sky-300 font-black text-base flex items-center justify-center shrink-0 shadow-inner">✖</span>
+                <span class="font-fredoka text-xs sm:text-sm font-bold">Kali</span>
+                <span class="op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-900/60 border border-sky-400/50 text-sky-200 text-[10px] font-black flex items-center justify-center">○</span>
+              </label>
+
+              <!-- Bagi (÷) -->
+              <label class="op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-sky-400/60 bg-gradient-to-b from-sky-600/90 to-blue-700/90 text-sky-100 cursor-pointer shadow-md transition active:scale-95">
+                <input type="checkbox" id="opDiv" value="div" class="hidden" />
+                <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-sky-900 text-sky-300 font-black text-base flex items-center justify-center shrink-0 shadow-inner">➗</span>
+                <span class="font-fredoka text-xs sm:text-sm font-bold">Bagi</span>
+                <span class="op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-900/60 border border-sky-400/50 text-sky-200 text-[10px] font-black flex items-center justify-center">○</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. DIFFICULTY SECTION -->
+          <div class="glossy-panel rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 relative">
+            <span class="absolute -top-3 left-4 badge-pill-header px-3 py-0.5 rounded-full font-fredoka text-[10px] sm:text-xs text-white uppercase tracking-wider border border-white/40">
+              TINGKAT KESULITAN ANGKA
+            </span>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2.5 mt-1.5">
+              <!-- Mudah (Custom Image Button) -->
+              <button id="diffEasyBtn" type="button" class="diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] border-2 border-emerald-300 ring-2 sm:ring-4 ring-emerald-400/50 shadow-[0_0_12px_rgba(52,211,153,0.6)] cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-100">
+                <img src="https://lh3.googleusercontent.com/d/16OMTaDcUjkb3KTXbYbqs1kmZdsO3MkoF" 
+                     alt="Mudah" 
+                     class="w-full h-auto object-contain rounded-[14px] sm:rounded-[18px] pointer-events-none transition-all duration-200 block" 
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=16OMTaDcUjkb3KTXbYbqs1kmZdsO3MkoF&sz=w1000';" />
+              </button>
+
+              <!-- Sedang (Custom Image Button) -->
+              <button id="diffMedBtn" type="button" class="diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90">
+                <img src="https://lh3.googleusercontent.com/d/1yGLSciisKg_2IWw_nqoEFPSqm1OqWHNR" 
+                     alt="Sedang" 
+                     class="w-full h-auto object-contain rounded-[14px] sm:rounded-[18px] pointer-events-none transition-all duration-200 block" 
+                     style="filter: brightness(0.75) grayscale(20%); opacity: 0.7;"
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=1yGLSciisKg_2IWw_nqoEFPSqm1OqWHNR&sz=w1000';" />
+              </button>
+
+              <!-- Sulit (Custom Image Button) -->
+              <button id="diffHardBtn" type="button" class="diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90">
+                <img src="https://lh3.googleusercontent.com/d/1aUKZR6gPWC9EPiW2G_7BL0ehkFWsXFRe" 
+                     alt="Sulit" 
+                     class="w-full h-auto object-contain rounded-[14px] sm:rounded-[18px] pointer-events-none transition-all duration-200 block" 
+                     style="filter: brightness(0.75) grayscale(20%); opacity: 0.7;"
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=1aUKZR6gPWC9EPiW2G_7BL0ehkFWsXFRe&sz=w1000';" />
+              </button>
+
+              <!-- Extreme (Custom Image Button) -->
+              <button id="diffExtremeBtn" type="button" class="diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90">
+                <img src="https://lh3.googleusercontent.com/d/1ac2o6exAGaxUUXOCvjp7J5woNZA2QYsL" 
+                     alt="Extreme" 
+                     class="w-full h-auto object-contain rounded-[14px] sm:rounded-[18px] pointer-events-none transition-all duration-200 block" 
+                     style="filter: brightness(0.75) grayscale(20%); opacity: 0.7;"
+                     onerror="if(!this.src.includes('thumbnail')) this.src='https://drive.google.com/thumbnail?id=1ac2o6exAGaxUUXOCvjp7J5woNZA2QYsL&sz=w1000';" />
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== BOTTOM BAR: START GAME BUTTON ==================== -->
+        <div class="relative z-10 flex items-center justify-center mt-3 pt-1">
+          <button id="startPlayBtn" type="button" class="btn-start-glossy w-full max-w-md py-3 sm:py-3.5 px-6 rounded-full text-slate-950 font-fredoka text-sm sm:text-lg md:text-xl tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer">
+            <span>MULAI PENYELAMAN SEKARANG!</span>
+            <span class="text-xl sm:text-2xl">🚀</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== GAME OVER / VICTORY MODAL ==================== -->
+    <div id="endModal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div id="endModalCard" class="bg-gradient-to-b from-slate-900 to-slate-950 border-4 border-yellow-400 rounded-3xl p-5 sm:p-7 max-w-md w-full text-center shadow-2xl">
+        <div id="endIcon" class="text-6xl mb-2">🏆</div>
+        <h2 id="endTitle" class="font-fredoka text-2xl sm:text-3xl text-yellow-300">MISI SELESAI!</h2>
+        <p id="endSubtitle" class="text-xs sm:text-sm text-cyan-200 mt-1 font-bold">Laporan Penyelaman</p>
+
+        <!-- Stats Grid -->
+        <div id="endStatsContainer" class="my-4 space-y-2"></div>
+
+        <div class="flex gap-2.5">
+          <button id="playAgainBtn" class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm shadow-xl transition transform hover:scale-105 active:scale-95 cursor-pointer">
+            🔄 MAIN LAGI
+          </button>
+          <button id="exitToMenuBtn" class="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm shadow transition cursor-pointer">
+            🏠 MENU
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== GLOBAL PERSISTENT FULLSCREEN BUTTON ==================== -->
+    <button id="fullscreenBtn" title="Layar Penuh (Fullscreen)" class="absolute bottom-1.5 sm:bottom-2 right-2 sm:right-3.5 z-[60] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-cyan-300 hover:text-white border-2 border-cyan-400/50 shadow-2xl backdrop-blur-md font-black text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
+      <span id="fullscreenIcon" class="text-sm sm:text-base leading-none">⛶</span>
+      <span id="fullscreenText" class="text-[10px] sm:text-xs">FULLSCREEN</span>
+    </button>
+
+  </div>
+
+  <script>
+    /* Procedural Web Audio Engine (No external sound files required) */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.engineOsc = null;
+        this.engineGain = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      startEngine() {
+        if (this.muted || this.engineOsc || !this.ctx) return;
+        try {
+          this.engineOsc = this.ctx.createOscillator();
+          this.engineGain = this.ctx.createGain();
+          this.engineOsc.type = 'sawtooth';
+          this.engineOsc.frequency.setValueAtTime(42, this.ctx.currentTime);
+          this.engineGain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+          this.engineOsc.connect(this.engineGain);
+          this.engineGain.connect(this.ctx.destination);
+          this.engineOsc.start();
+        } catch (e) {}
+      }
+
+      stopEngine() {
+        if (this.engineOsc) {
+          try {
+            this.engineOsc.stop();
+            this.engineOsc.disconnect();
+          } catch(e) {}
+          this.engineOsc = null;
+        }
+      }
+
+      playCollect() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(350, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.14);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      playCorrect() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+          gain.gain.setValueAtTime(0.12, now + idx * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.05);
+          osc.stop(now + idx * 0.05 + 0.16);
+        });
+      }
+
+      playWrong() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(105, now + 0.22);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.23);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.23);
+      }
+
+      playDamage() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(130, now);
+        osc.frequency.linearRampToValueAtTime(55, now + 0.18);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+
+      playAlarm() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(659, now + 0.09);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      }
+
+      playVictory() {
+        if (this.muted) return;
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((f, i) => {
+          setTimeout(() => {
+            if (this.muted) return;
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, now);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.32);
+          }, i * 110);
+        });
+      }
+    }
+
+    const sound = new AudioEngine();
+
+    class MathFactory {
+      static generate(difficulty = 'mudah', allowedOps = ['add']) {
+        if (!allowedOps || allowedOps.length === 0) {
+          allowedOps = ['add'];
+        }
+
+        const op = allowedOps[Math.floor(Math.random() * allowedOps.length)];
+        let expr = '';
+        let ans = 0;
+
+        if (difficulty === 'mudah') {
+          if (op === 'add') {
+            const a = Math.floor(Math.random() * 10) + 1;
+            const b = Math.floor(Math.random() * (15 - a)) + 1;
+            expr = `${a} + ${b} = ?`;
+            ans = a + b;
+          } else if (op === 'sub') {
+            const a = Math.floor(Math.random() * 14) + 2;
+            const b = Math.floor(Math.random() * (a - 1)) + 1;
+            expr = `${a} - ${b} = ?`;
+            ans = a - b;
+          } else if (op === 'mul') {
+            const a = Math.floor(Math.random() * 4) + 1;
+            const maxB = Math.max(1, Math.floor(15 / a));
+            const b = Math.floor(Math.random() * maxB) + 1;
+            expr = `${a} × ${b} = ?`;
+            ans = a * b;
+          } else {
+            const divisor = Math.floor(Math.random() * 4) + 1;
+            const maxQ = Math.max(1, Math.floor(15 / divisor));
+            const quotient = Math.floor(Math.random() * maxQ) + 1;
+            const dividend = divisor * quotient;
+            expr = `${dividend} ÷ ${divisor} = ?`;
+            ans = quotient;
+          }
+        } else if (difficulty === 'sedang') {
+          if (op === 'add') {
+            const a = Math.floor(Math.random() * 35) + 5;
+            const b = Math.floor(Math.random() * (50 - a)) + 1;
+            expr = `${a} + ${b} = ?`;
+            ans = a + b;
+          } else if (op === 'sub') {
+            const a = Math.floor(Math.random() * 40) + 11;
+            const b = Math.floor(Math.random() * (a - 3)) + 1;
+            expr = `${a} - ${b} = ?`;
+            ans = a - b;
+          } else if (op === 'mul') {
+            const a = Math.floor(Math.random() * 7) + 2;
+            const maxB = Math.max(2, Math.floor(50 / a));
+            const b = Math.floor(Math.random() * (maxB - 1)) + 2;
+            expr = `${a} × ${b} = ?`;
+            ans = a * b;
+          } else {
+            const divisor = Math.floor(Math.random() * 6) + 2;
+            const maxQ = Math.max(2, Math.floor(50 / divisor));
+            const quotient = Math.floor(Math.random() * (maxQ - 1)) + 2;
+            const dividend = divisor * quotient;
+            expr = `${dividend} ÷ ${divisor} = ?`;
+            ans = quotient;
+          }
+        } else if (difficulty === 'sulit') {
+          if (op === 'add') {
+            const a = Math.floor(Math.random() * 65) + 15;
+            const b = Math.floor(Math.random() * (99 - a)) + 5;
+            expr = `${a} + ${b} = ?`;
+            ans = a + b;
+          } else if (op === 'sub') {
+            const a = Math.floor(Math.random() * 60) + 40;
+            const b = Math.floor(Math.random() * (a - 10)) + 5;
+            expr = `${a} - ${b} = ?`;
+            ans = a - b;
+          } else if (op === 'mul') {
+            const a = Math.floor(Math.random() * 9) + 3;
+            const maxB = Math.max(2, Math.floor(99 / a));
+            const b = Math.floor(Math.random() * (maxB - 2)) + 2;
+            expr = `${a} × ${b} = ?`;
+            ans = a * b;
+          } else {
+            const divisor = Math.floor(Math.random() * 9) + 2;
+            const maxQ = Math.max(2, Math.floor(99 / divisor));
+            const quotient = Math.floor(Math.random() * (maxQ - 2)) + 2;
+            const dividend = divisor * quotient;
+            expr = `${dividend} ÷ ${divisor} = ?`;
+            ans = quotient;
+          }
+        } else {
+          // Extreme: 100 - 999
+          if (op === 'add') {
+            const a = Math.floor(Math.random() * 450) + 100;
+            const b = Math.floor(Math.random() * 440) + 100;
+            expr = `${a} + ${b} = ?`;
+            ans = a + b;
+          } else if (op === 'sub') {
+            const a = Math.floor(Math.random() * 650) + 300;
+            const b = Math.floor(Math.random() * (a - 120)) + 100;
+            expr = `${a} - ${b} = ?`;
+            ans = a - b;
+          } else if (op === 'mul') {
+            const a = Math.floor(Math.random() * 25) + 12;
+            const b = Math.floor(Math.random() * 18) + 9;
+            expr = `${a} × ${b} = ?`;
+            ans = a * b;
+          } else {
+            const divisor = Math.floor(Math.random() * 16) + 6;
+            const quotient = Math.floor(Math.random() * 35) + 12;
+            const dividend = divisor * quotient;
+            expr = `${dividend} ÷ ${divisor} = ?`;
+            ans = quotient;
+          }
+        }
+
+        const choices = [ans];
+        while (choices.length < 3) {
+          const spread = difficulty === 'extreme' ? 18 : (difficulty === 'sulit' ? 8 : (difficulty === 'sedang' ? 5 : 3));
+          const delta = (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * spread) + 1);
+          const candidate = Math.max(1, ans + delta);
+          if (!choices.includes(candidate)) {
+            choices.push(candidate);
+          }
+        }
+        choices.sort(() => Math.random() - 0.5);
+
+        return { question: expr, answer: ans, choices, difficulty };
+      }
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const FINISH_DISTANCE = 5000;
+    const FINISH_CROSS_OFFSET = 80;
+
+    let selectedMode = 'solo';
+    let currentDifficulty = 'mudah';
+    let selectedOperations = ['add', 'sub'];
+    let gameRunning = false;
+    let lastTime = 0;
+
+    function getO2IntervalByDifficulty(diff) {
+      if (diff === 'mudah') return 3.0;
+      if (diff === 'sedang') return 2.5;
+      if (diff === 'sulit' || diff === 'extreme') return 2.0;
+      return 3.0;
+    }
+
+    // Submarine Entity Class
+    class Submarine {
+      constructor(id, label, colorHex, darkColorHex, lightColorHex) {
+        this.id = id;
+        this.label = label;
+        this.color = colorHex;
+        this.darkColor = darkColorHex;
+        this.lightColor = lightColorHex;
+
+        this.x = 150;
+        this.y = 200;
+        this.targetY = 200;
+        this.speedY = 240;
+        this.distance = 0;
+        this.baseSpeedX = 40;
+        this.boostTimer = 0;
+        this.facing = 1;
+
+        this.oxygen = 10;
+        this.o2Timer = 0;
+        this.o2Interval = 3.0;
+        this.alive = true;
+
+        this.propellerAngle = 0;
+        this.wobble = Math.random() * Math.PI;
+        this.exhaustBubbles = [];
+
+        this.activeQuiz = null;
+        this.correctCount = 0;
+        this.wrongCount = 0;
+      }
+
+      reset(spawnX, spawnY, o2Interval = 3.0, facing = 1) {
+        this.x = spawnX;
+        this.y = spawnY;
+        this.targetY = spawnY;
+        this.distance = 0;
+        this.boostTimer = 0;
+        this.oxygen = 10;
+        this.o2Timer = 0;
+        this.o2Interval = o2Interval;
+        this.facing = facing;
+        this.alive = true;
+        this.exhaustBubbles = [];
+        this.activeQuiz = null;
+        this.correctCount = 0;
+        this.wrongCount = 0;
+      }
+
+      update(dt, minY, maxY) {
+        if (!this.alive) return;
+
+        // Pause mechanics while quiz is active
+        if (this.activeQuiz) {
+          this.exhaustBubbles.forEach(b => {
+            b.x -= 20 * dt * (b.dir || 1);
+            b.life -= dt;
+          });
+          this.exhaustBubbles = this.exhaustBubbles.filter(b => b.life > 0);
+          return;
+        }
+
+        // Oxygen countdown
+        this.o2Timer += dt;
+        if (this.o2Timer >= this.o2Interval) {
+          this.o2Timer = 0;
+          this.oxygen = Math.max(0, this.oxygen - 1);
+          renderOxygenHUD(this);
+
+          if (this.oxygen <= 2 && this.oxygen > 0) {
+            sound.playAlarm();
+            showPlayerToast(this.id, '⚠️ Oksigen Kritis!', 'warning');
+          } else if (this.oxygen === 0) {
+            this.alive = false;
+            sound.playDamage();
+            showPlayerToast(this.id, '💀 Oksigen Habis! Kapal Karam', 'danger');
+            checkGlobalGameOver();
+            return;
+          }
+        }
+
+        let forwardSpeed = this.baseSpeedX;
+        if (this.boostTimer > 0) {
+          forwardSpeed = 120;
+          this.boostTimer -= dt;
+        }
+        this.distance += forwardSpeed * dt;
+
+        this.targetY = Math.max(minY, Math.min(maxY, this.targetY));
+        this.y += (this.targetY - this.y) * 11 * dt;
+        this.wobble += dt * 3.5;
+        this.propellerAngle += dt * (this.boostTimer > 0 ? 36 : 18);
+
+        if (Math.random() < (this.boostTimer > 0 ? 0.8 : 0.35)) {
+          const spawnX = this.facing === 1 ? this.x - 42 : this.x + 42;
+          this.exhaustBubbles.push({
+            x: spawnX,
+            y: this.y + (Math.random() - 0.5) * 8,
+            r: Math.random() * 3.5 + 2,
+            life: 0.5,
+            dir: this.facing
+          });
+        }
+        this.exhaustBubbles.forEach(b => {
+          b.x -= 75 * dt * (b.dir || 1);
+          b.y -= 14 * dt;
+          b.life -= dt;
+        });
+        this.exhaustBubbles = this.exhaustBubbles.filter(b => b.life > 0);
+      }
+
+      draw(c) {
+        c.save();
+        const displayY = this.y + Math.sin(this.wobble) * 2.5;
+        c.translate(this.x, displayY);
+
+        if (this.facing === -1) {
+          c.scale(-1, 1);
+        }
+
+        if (!this.alive) {
+          c.rotate(0.35);
+          c.filter = 'grayscale(80%) opacity(60%)';
+        }
+
+        if (this.boostTimer > 0) {
+          c.shadowColor = this.lightColor;
+          c.shadowBlur = 18;
+        } else {
+          c.shadowColor = 'rgba(0,0,0,0.4)';
+          c.shadowBlur = 8;
+        }
+
+        // Main Hull
+        c.fillStyle = this.color;
+        c.beginPath();
+        c.ellipse(0, 0, 42, 22, 0, 0, Math.PI * 2);
+        c.fill();
+        c.lineWidth = 3;
+        c.strokeStyle = this.darkColor;
+        c.stroke();
+
+        c.fillStyle = this.darkColor;
+        c.beginPath();
+        c.ellipse(0, 5, 36, 14, 0, 0, Math.PI);
+        c.fill();
+
+        // Conning Tower
+        c.fillStyle = this.color;
+        c.beginPath();
+        c.roundRect(-12, -30, 24, 15, [6, 6, 0, 0]);
+        c.fill();
+        c.stroke();
+
+        // Periscope
+        c.strokeStyle = '#94a3b8';
+        c.lineWidth = 3.5;
+        c.beginPath();
+        c.moveTo(2, -30);
+        c.lineTo(2, -40);
+        c.lineTo(9, -40);
+        c.stroke();
+        c.fillStyle = '#38bdf8';
+        c.beginPath();
+        c.arc(9, -40, 3, 0, Math.PI * 2);
+        c.fill();
+
+        // Porthole
+        c.fillStyle = '#38bdf8';
+        c.beginPath();
+        c.arc(12, -2, 9, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = '#ffffff';
+        c.lineWidth = 2.5;
+        c.stroke();
+
+        c.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        c.beginPath();
+        c.arc(9, -5, 3, 0, Math.PI * 2);
+        c.fill();
+
+        // Submarine ID badge
+        c.fillStyle = '#ffffff';
+        c.font = 'bold 9px Fredoka One';
+        c.textAlign = 'center';
+        if (this.facing === -1) {
+          c.save();
+          c.translate(-14, 3);
+          c.scale(-1, 1);
+          c.fillText(this.label, 0, 0);
+          c.restore();
+        } else {
+          c.fillText(this.label, -14, 3);
+        }
+
+        // Propeller
+        c.save();
+        c.translate(-44, 0);
+        c.rotate(this.propellerAngle);
+        c.fillStyle = this.color;
+        c.fillRect(-4, -13, 8, 26);
+        c.strokeStyle = this.darkColor;
+        c.lineWidth = 1.5;
+        c.strokeRect(-4, -13, 8, 26);
+        c.restore();
+
+        if (this.boostTimer > 0) {
+          c.fillStyle = '#38bdf8';
+          c.beginPath();
+          c.moveTo(-44, -8);
+          c.lineTo(-65 - Math.random() * 12, 0);
+          c.lineTo(-44, 8);
+          c.closePath();
+          c.fill();
+        }
+
+        c.restore();
+
+        // Draw exhaust bubbles
+        c.save();
+        c.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        this.exhaustBubbles.forEach(b => {
+          c.beginPath();
+          c.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          c.fill();
+        });
+        c.restore();
+      }
+    }
+
+    class OxygenTank {
+      constructor(canvasW, laneMinY, laneMaxY, targetLaneId, dir = 1) {
+        this.laneId = targetLaneId;
+        this.dir = dir;
+        this.radius = 17;
+        if (this.dir === 1) {
+          this.x = canvasW + 40 + Math.random() * 60;
+        } else {
+          this.x = -40 - Math.random() * 60;
+        }
+        this.y = laneMinY + 30 + Math.random() * (laneMaxY - laneMinY - 60);
+        this.speed = 135 + Math.random() * 25;
+        this.rotation = 0;
+        this.pulse = 0;
+        this.collected = false;
+      }
+
+      update(dt) {
+        this.x -= this.dir * this.speed * dt;
+        this.rotation += dt * 2.5;
+        this.pulse += dt * 4;
+      }
+
+      draw(c) {
+        c.save();
+        c.translate(this.x, this.y);
+        c.shadowColor = '#06b6d4';
+        c.shadowBlur = Math.sin(this.pulse) * 4 + 12;
+        c.rotate(this.rotation * 0.2);
+
+        c.fillStyle = '#06b6d4';
+        c.beginPath();
+        c.roundRect(-11, -20, 22, 40, 9);
+        c.fill();
+        c.strokeStyle = '#e0f2fe';
+        c.lineWidth = 2;
+        c.stroke();
+
+        c.fillStyle = '#f59e0b';
+        c.fillRect(-5, -25, 10, 5);
+
+        c.fillStyle = '#0284c7';
+        c.fillRect(-6, -7, 12, 14);
+
+        c.fillStyle = '#ffffff';
+        c.font = 'bold 10px Fredoka One';
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText('O₂', 0, 0);
+
+        c.restore();
+      }
+    }
+
+    class SeaObstacle {
+      constructor(canvasW, laneMinY, laneMaxY, targetLaneId, dir = 1) {
+        this.laneId = targetLaneId;
+        this.dir = dir;
+        this.type = Math.random() > 0.4 ? 'jellyfish' : 'mine';
+        this.radius = 16;
+        if (this.dir === 1) {
+          this.x = canvasW + 50 + Math.random() * 70;
+        } else {
+          this.x = -50 - Math.random() * 70;
+        }
+        this.y = laneMinY + 30 + Math.random() * (laneMaxY - laneMinY - 60);
+        this.speed = 120 + Math.random() * 30;
+        this.time = Math.random() * 10;
+        this.hit = false;
+      }
+
+      update(dt) {
+        this.x -= this.dir * this.speed * dt;
+        this.time += dt * 3;
+        if (this.type === 'jellyfish') {
+          this.y += Math.sin(this.time) * 0.7;
+        }
+      }
+
+      draw(c) {
+        c.save();
+        c.translate(this.x, this.y);
+
+        if (this.type === 'jellyfish') {
+          c.shadowColor = '#f43f5e';
+          c.shadowBlur = 10;
+          c.fillStyle = 'rgba(244, 63, 94, 0.85)';
+          c.beginPath();
+          c.arc(0, -3, 15, Math.PI, 0, false);
+          c.closePath();
+          c.fill();
+
+          c.strokeStyle = '#fda4af';
+          c.lineWidth = 2;
+          for (let i = -9; i <= 9; i += 4.5) {
+            c.beginPath();
+            c.moveTo(i, -2);
+            const wag = Math.sin(this.time + i) * 5;
+            c.quadraticCurveTo(i + wag, 9, i - wag, 19);
+            c.stroke();
+          }
+        } else {
+          c.shadowColor = '#e11d48';
+          c.shadowBlur = 8;
+          c.fillStyle = '#475569';
+          c.beginPath();
+          c.arc(0, 0, 13, 0, Math.PI * 2);
+          c.fill();
+
+          c.fillStyle = '#dc2626';
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+            const sx = Math.cos(a) * 17;
+            const sy = Math.sin(a) * 17;
+            c.beginPath();
+            c.arc(sx, sy, 3, 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+
+        c.restore();
+      }
+    }
+
+    class SeaEnvironment {
+      constructor() {
+        this.bubbles = [];
+        this.time = 0;
+        this.bgImg = new Image();
+        this.bgImgLoaded = false;
+        this.bgImg.src = "https://lh3.googleusercontent.com/d/1bDaab9eBOk2R4eM1eMje-r9mgNi_anJ6";
+        this.bgImg.onload = () => {
+          this.bgImgLoaded = true;
+        };
+        this.bgImg.onerror = () => {
+          if (!this.bgImg.src.includes('thumbnail')) {
+            this.bgImg.src = "https://drive.google.com/thumbnail?id=1bDaab9eBOk2R4eM1eMje-r9mgNi_anJ6&sz=w1920";
+          }
+        };
+        if (this.bgImg.complete && this.bgImg.naturalWidth > 0) {
+          this.bgImgLoaded = true;
+        }
+        this.init();
+      }
+
+      init() {
+        this.bubbles = [];
+        for (let i = 0; i < 40; i++) {
+          this.bubbles.push({
+            x: Math.random() * 1200,
+            y: Math.random() * 800,
+            r: Math.random() * 3.5 + 1.5,
+            speed: Math.random() * 0.8 + 0.3,
+            wobble: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      update(dt) {
+        this.time += dt;
+        this.bubbles.forEach(b => {
+          b.y -= b.speed * 50 * dt;
+          b.wobble += dt * 3;
+          b.x += Math.sin(b.wobble) * 0.3;
+          if (b.y < -10) {
+            b.y = 850;
+            b.x = Math.random() * 1200;
+          }
+        });
+      }
+
+      draw(c, width, height, isDuel) {
+        c.save();
+
+        if (this.bgImgLoaded && this.bgImg.naturalWidth > 0) {
+          c.drawImage(this.bgImg, 0, 0, width, height);
+        } else {
+          const grad = c.createLinearGradient(0, 0, 0, height);
+          grad.addColorStop(0, '#032c54');
+          grad.addColorStop(0.5, '#021e3d');
+          grad.addColorStop(1, '#011124');
+          c.fillStyle = grad;
+          c.fillRect(0, 0, width, height);
+        }
+
+        // Bubbles
+        c.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        this.bubbles.forEach(b => {
+          c.beginPath();
+          c.arc(b.x % width, b.y % height, b.r, 0, Math.PI * 2);
+          c.fill();
+        });
+
+        // Split Screen Dividing Line
+        if (isDuel) {
+          const midY = height / 2;
+          c.strokeStyle = '#06b6d4';
+          c.lineWidth = 3;
+          c.setLineDash([12, 8]);
+          c.beginPath();
+          c.moveTo(0, midY);
+          c.lineTo(width, midY);
+          c.stroke();
+          c.setLineDash([]);
+
+          c.font = 'bold 11px Fredoka One';
+          c.fillStyle = 'rgba(251, 191, 36, 0.9)';
+          c.textAlign = 'left';
+          c.fillText('JALUR PLAYER 1 (KUNING) ➔', 90, 22);
+
+          c.fillStyle = 'rgba(52, 211, 153, 0.9)';
+          c.textAlign = 'right';
+          c.fillText('⬅ JALUR PLAYER 2 (HIJAU)', width - 90, midY + 22);
+          c.textAlign = 'left';
+        }
+
+        c.restore();
+      }
+    }
+
+    const environment = new SeaEnvironment();
+    const p1 = new Submarine('p1', 'P1', '#f59e0b', '#78350f', '#fde047');
+    const p2 = new Submarine('p2', 'P2', '#10b981', '#064e3b', '#6ee7b7');
+
+    let tanks = [];
+    let obstacles = [];
+    let p1SpawnTimer = 0;
+    let p2SpawnTimer = 0;
+    let obsSpawnTimer = 0;
+
+    const keyState = {};
+    let p1UpActive = false;
+    let p1DownActive = false;
+    let p2UpActive = false;
+    let p2DownActive = false;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+      positionOverlays();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function positionOverlays() {
+      const rect = canvas.getBoundingClientRect();
+      const isDuel = selectedMode === 'duel';
+
+      const p1Ctrl = document.getElementById('p1CtrlPanel');
+      const p2Ctrl = document.getElementById('p2CtrlPanel');
+      const p1O2 = document.getElementById('p1OxygenBox');
+      const p2O2 = document.getElementById('p2OxygenBox');
+      const p1Quiz = document.getElementById('p1QuizCard');
+      const p2Quiz = document.getElementById('p2QuizCard');
+
+      if (!gameRunning) {
+        p1Ctrl.classList.add('hidden');
+        p1O2.classList.add('hidden');
+        p2Ctrl.classList.add('hidden');
+        p2O2.classList.add('hidden');
+        p1Quiz.classList.add('hidden');
+        p2Quiz.classList.add('hidden');
+        return;
+      }
+
+      if (!isDuel) {
+        p1Ctrl.classList.remove('hidden');
+        p1O2.classList.remove('hidden');
+
+        p1Ctrl.style.top = `${rect.height * 0.5}px`;
+        p1Ctrl.style.transform = 'translateY(-50%)';
+        p1Ctrl.style.left = '8px';
+        p1Ctrl.style.right = 'auto';
+
+        p1O2.style.top = '12px';
+        p1O2.style.left = '95px';
+        p1O2.style.right = 'auto';
+
+        p1Quiz.style.top = '50%';
+        p1Quiz.style.left = '50%';
+        p1Quiz.style.transform = 'translate(-50%, -50%)';
+
+        p2Ctrl.classList.add('hidden');
+        p2O2.classList.add('hidden');
+        p2Quiz.classList.add('hidden');
+        document.getElementById('p2Toast').classList.add('hidden');
+      } else {
+        p1Ctrl.classList.remove('hidden');
+        p1O2.classList.remove('hidden');
+        p2Ctrl.classList.remove('hidden');
+        p2O2.classList.remove('hidden');
+        document.getElementById('p2Toast').classList.remove('hidden');
+
+        p1Ctrl.style.top = `${rect.height * 0.25}px`;
+        p1Ctrl.style.transform = 'translateY(-50%)';
+        p1Ctrl.style.left = '8px';
+        p1Ctrl.style.right = 'auto';
+
+        p1O2.style.top = '10px';
+        p1O2.style.left = '95px';
+        p1O2.style.right = 'auto';
+
+        p1Quiz.style.top = `${rect.height * 0.25}px`;
+        p1Quiz.style.left = '50%';
+        p1Quiz.style.transform = 'translate(-50%, -50%)';
+
+        p2Ctrl.style.top = `${rect.height * 0.75}px`;
+        p2Ctrl.style.transform = 'translateY(-50%)';
+        p2Ctrl.style.right = '8px';
+        p2Ctrl.style.left = 'auto';
+
+        p2O2.style.top = `${rect.height * 0.5 + 10}px`;
+        p2O2.style.right = '95px';
+        p2O2.style.left = 'auto';
+
+        p2Quiz.style.top = `${rect.height * 0.75}px`;
+        p2Quiz.style.left = '50%';
+        p2Quiz.style.transform = 'translate(-50%, -50%)';
+      }
+    }
+
+    function initOxygenBars(containerId, barPrefix) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        const bar = document.createElement('div');
+        bar.id = `${barPrefix}-${i}`;
+        bar.className = 'w-2 sm:w-3 h-full rounded-sm bg-cyan-400 shadow-[0_0_6px_#22d3ee] transition-all duration-200';
+        container.appendChild(bar);
+      }
+    }
+
+    initOxygenBars('p1BarGrid', 'p1bar');
+    initOxygenBars('p2BarGrid', 'p2bar');
+
+    function renderOxygenHUD(sub) {
+      const isP1 = sub.id === 'p1';
+      const textElem = document.getElementById(isP1 ? 'p1OxygenText' : 'p2OxygenText');
+      const boxElem = document.getElementById(isP1 ? 'p1OxygenBox' : 'p2OxygenBox');
+      const prefix = isP1 ? 'p1bar' : 'p2bar';
+
+      textElem.textContent = `${sub.oxygen}/10 BAR`;
+
+      for (let i = 1; i <= 10; i++) {
+        const bar = document.getElementById(`${prefix}-${i}`);
+        if (!bar) continue;
+        if (i <= sub.oxygen) {
+          bar.classList.remove('opacity-20', 'bg-slate-800');
+          if (sub.oxygen <= 2) {
+            bar.className = 'w-2 sm:w-3 h-full rounded-sm bg-rose-500 shadow-[0_0_6px_#f43f5e] transition-all';
+          } else if (sub.oxygen <= 5) {
+            bar.className = 'w-2 sm:w-3 h-full rounded-sm bg-amber-400 shadow-[0_0_6px_#fbbf24] transition-all';
+          } else {
+            bar.className = isP1 
+              ? 'w-2 sm:w-3 h-full rounded-sm bg-yellow-400 shadow-[0_0_6px_#facc15] transition-all'
+              : 'w-2 sm:w-3 h-full rounded-sm bg-emerald-400 shadow-[0_0_6px_#34d399] transition-all';
+          }
+        } else {
+          bar.className = 'w-2 sm:w-3 h-full rounded-sm bg-slate-800 opacity-20 transition-all';
+        }
+      }
+
+      if (sub.oxygen <= 2 && sub.alive) {
+        boxElem.classList.add('o2-alert');
+      } else {
+        boxElem.classList.remove('o2-alert');
+      }
+    }
+
+    function showPlayerToast(subId, msg, type = 'normal') {
+      const isP1 = subId === 'p1';
+      const toast = document.getElementById(isP1 ? 'p1Toast' : 'p2Toast');
+      const rect = canvas.getBoundingClientRect();
+      toast.textContent = msg;
+
+      if (selectedMode === 'solo') {
+        toast.style.top = '65px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+      } else {
+        const targetY = isP1 ? rect.height * 0.15 : rect.height * 0.65;
+        toast.style.top = `${targetY}px`;
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+      }
+
+      if (type === 'success') {
+        toast.className = 'absolute pointer-events-none transition-all duration-300 opacity-100 scale-100 font-fredoka text-xs sm:text-sm z-40 px-3 py-1.5 rounded-xl border bg-emerald-950/95 border-emerald-400 text-emerald-300';
+      } else if (type === 'danger') {
+        toast.className = 'absolute pointer-events-none transition-all duration-300 opacity-100 scale-100 font-fredoka text-xs sm:text-sm z-40 px-3 py-1.5 rounded-xl border bg-rose-950/95 border-rose-400 text-rose-300';
+      } else {
+        toast.className = 'absolute pointer-events-none transition-all duration-300 opacity-100 scale-100 font-fredoka text-xs sm:text-sm z-40 px-3 py-1.5 rounded-xl border bg-slate-900/95 border-yellow-400 text-yellow-300';
+      }
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'scale-100');
+        toast.classList.add('opacity-0', 'scale-75');
+      }, 1300);
+    }
+
+    function triggerDamageShake() {
+      const frame = document.getElementById('gameFrame');
+      frame.classList.add('shake-active');
+      setTimeout(() => frame.classList.remove('shake-active'), 320);
+    }
+
+    function attachPointer(btnId, setter) {
+      const btn = document.getElementById(btnId);
+      const onStart = (e) => {
+        e.preventDefault();
+        setter(true);
+        btn.classList.add('active');
+        sound.init();
+      };
+      const onEnd = (e) => {
+        e.preventDefault();
+        setter(false);
+        btn.classList.remove('active');
+      };
+
+      btn.addEventListener('pointerdown', onStart);
+      btn.addEventListener('pointerup', onEnd);
+      btn.addEventListener('pointercancel', onEnd);
+      btn.addEventListener('pointerleave', onEnd);
+    }
+
+    attachPointer('p1BtnUp', v => { p1UpActive = v; });
+    attachPointer('p1BtnDown', v => { p1DownActive = v; });
+    attachPointer('p2BtnUp', v => { p2UpActive = v; });
+    attachPointer('p2BtnDown', v => { p2DownActive = v; });
+
+    window.addEventListener('keydown', (e) => {
+      keyState[e.code] = true;
+      keyState[e.key] = true;
+
+      if (p1.activeQuiz) {
+        if (e.key === '1') answerQuiz(p1, p1.activeQuiz.choices[0]);
+        if (e.key === '2') answerQuiz(p1, p1.activeQuiz.choices[1]);
+        if (e.key === '3') answerQuiz(p1, p1.activeQuiz.choices[2]);
+      }
+
+      if (selectedMode === 'duel' && p2.activeQuiz) {
+        if (e.key === '7') answerQuiz(p2, p2.activeQuiz.choices[0]);
+        if (e.key === '8') answerQuiz(p2, p2.activeQuiz.choices[1]);
+        if (e.key === '9') answerQuiz(p2, p2.activeQuiz.choices[2]);
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keyState[e.code] = false;
+      keyState[e.key] = false;
+    });
+
+    function triggerSubQuiz(sub) {
+      if (sub.activeQuiz || !sub.alive) return;
+      sub.activeQuiz = MathFactory.generate(currentDifficulty, selectedOperations);
+
+      const isP1 = sub.id === 'p1';
+      const card = document.getElementById(isP1 ? 'p1QuizCard' : 'p2QuizCard');
+      const expr = document.getElementById(isP1 ? 'p1QuizExpr' : 'p2QuizExpr');
+      const grid = document.getElementById(isP1 ? 'p1QuizChoices' : 'p2QuizChoices');
+      const timerBadge = document.getElementById(isP1 ? 'p1QuizTimer' : 'p2QuizTimer');
+      if (timerBadge) {
+        timerBadge.textContent = '⏸️ JEDA: JAWAB SOAL';
+      }
+
+      expr.textContent = sub.activeQuiz.question;
+      grid.innerHTML = '';
+
+      sub.activeQuiz.choices.forEach((val, idx) => {
+        const btn = document.createElement('button');
+        btn.className = isP1
+          ? 'py-2 sm:py-3 px-2 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-fredoka text-lg sm:text-2xl shadow border-2 border-yellow-200 transition cursor-pointer flex flex-col items-center'
+          : 'py-2 sm:py-3 px-2 rounded-xl bg-teal-400 hover:bg-teal-300 active:scale-95 text-slate-950 font-fredoka text-lg sm:text-2xl shadow border-2 border-emerald-200 transition cursor-pointer flex flex-col items-center';
+        
+        const shortcut = isP1 ? `[${idx + 1}]` : `[${idx + 7}]`;
+        btn.innerHTML = `<span>${val}</span><span class="text-[9px] opacity-75 font-mono">${shortcut}</span>`;
+        btn.onclick = () => answerQuiz(sub, val);
+        grid.appendChild(btn);
+      });
+
+      card.classList.remove('hidden');
+    }
+
+    function answerQuiz(sub, chosenValue) {
+      if (!sub.activeQuiz || !sub.alive) return;
+      const isCorrect = chosenValue === sub.activeQuiz.answer;
+      const isP1 = sub.id === 'p1';
+
+      if (isCorrect) {
+        sub.correctCount++;
+        sub.oxygen = Math.min(10, sub.oxygen + 2);
+        sub.boostTimer = 3.2;
+        sound.playCorrect();
+        showPlayerToast(sub.id, `🎉 ${sub.label} BENAR! +2 O₂ & Turbo!`, 'success');
+      } else {
+        sub.wrongCount++;
+        sub.oxygen = Math.max(0, sub.oxygen - 1);
+        sound.playWrong();
+        triggerDamageShake();
+        showPlayerToast(sub.id, `❌ ${sub.label} SALAH! Jawaban: ${sub.activeQuiz.answer}`, 'danger');
+      }
+
+      renderOxygenHUD(sub);
+      sub.activeQuiz = null;
+      document.getElementById(isP1 ? 'p1QuizCard' : 'p2QuizCard').classList.add('hidden');
+
+      if (sub.oxygen === 0) {
+        sub.alive = false;
+        sound.playDamage();
+        showPlayerToast(sub.id, `💀 ${sub.label} Karam!`, 'danger');
+        checkGlobalGameOver();
+      }
+    }
+
+    function startGame() {
+      document.getElementById('startModal').classList.add('hidden');
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('p1QuizCard').classList.add('hidden');
+      document.getElementById('p2QuizCard').classList.add('hidden');
+
+      sound.init();
+      sound.startEngine();
+
+      gameRunning = true;
+      resizeCanvas();
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const isDuel = selectedMode === 'duel';
+      const o2Interval = getO2IntervalByDifficulty(currentDifficulty);
+
+      if (!isDuel) {
+        p1.reset(150, rect.height * 0.5, o2Interval, 1);
+      } else {
+        p1.reset(150, rect.height * 0.25, o2Interval, 1);
+        p2.reset(w - 150, rect.height * 0.75, o2Interval, -1);
+      }
+
+      tanks = [];
+      obstacles = [];
+      p1SpawnTimer = 0;
+      p2SpawnTimer = 0;
+      obsSpawnTimer = 0;
+
+      renderOxygenHUD(p1);
+      if (isDuel) renderOxygenHUD(p2);
+
+      document.getElementById('gameModeBadge').textContent = isDuel ? 'Mode: 2 Pemain (Duel)' : 'Mode: 1 Pemain (Solo)';
+      document.getElementById('controlTipText').textContent = isDuel 
+        ? 'P1 [W/S] Kemudi Kiri ➔ | ⬅ Kemudi Kanan P2 [↑/↓]'
+        : 'Kemudi di sebelah kiri kapal: Tombol ▲ / ▼ atau [W/S] / [Panah]';
+
+      lastTime = performance.now();
+      requestAnimationFrame(mainGameLoop);
+    }
+
+    function mainGameLoop(now) {
+      if (!gameRunning) return;
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const isDuel = selectedMode === 'duel';
+
+      if (p1.alive && !p1.activeQuiz) {
+        if (p1UpActive || keyState['KeyW'] || keyState['w'] || (!isDuel && keyState['ArrowUp'])) {
+          p1.targetY -= p1.speedY * dt;
+        }
+        if (p1DownActive || keyState['KeyS'] || keyState['s'] || (!isDuel && keyState['ArrowDown'])) {
+          p1.targetY += p1.speedY * dt;
+        }
+      }
+
+      if (isDuel && p2.alive && !p2.activeQuiz) {
+        if (p2UpActive || keyState['ArrowUp']) {
+          p2.targetY -= p2.speedY * dt;
+        }
+        if (p2DownActive || keyState['ArrowDown']) {
+          p2.targetY += p2.speedY * dt;
+        }
+      }
+
+      const p1MinY = 40;
+      const p1MaxY = isDuel ? (h * 0.5 - 40) : (h - 50);
+      const p2MinY = h * 0.5 + 40;
+      const p2MaxY = h - 50;
+
+      if (!p1.activeQuiz) {
+        p1SpawnTimer += dt;
+        if (p1SpawnTimer >= 2.8) {
+          p1SpawnTimer = 0;
+          tanks.push(new OxygenTank(w, p1MinY, p1MaxY, 'p1', 1));
+        }
+      }
+
+      if (isDuel && !p2.activeQuiz) {
+        p2SpawnTimer += dt;
+        if (p2SpawnTimer >= 2.8) {
+          p2SpawnTimer = 0;
+          tanks.push(new OxygenTank(w, p2MinY, p2MaxY, 'p2', -1));
+        }
+      }
+
+      obsSpawnTimer += dt;
+      if (obsSpawnTimer >= 4.2) {
+        obsSpawnTimer = 0;
+        const leadDist = isDuel ? Math.max(p1.distance, p2.distance) : p1.distance;
+        if (FINISH_DISTANCE - leadDist > 140) {
+          const p1CanSpawn = !p1.activeQuiz;
+          const p2CanSpawn = isDuel && !p2.activeQuiz;
+          if (p1CanSpawn || p2CanSpawn) {
+            let targetLane = 'p1';
+            if (p1CanSpawn && p2CanSpawn) {
+              targetLane = tanks.length % 2 === 0 ? 'p1' : 'p2';
+            } else if (p2CanSpawn) {
+              targetLane = 'p2';
+            }
+            const minY = targetLane === 'p1' ? p1MinY : p2MinY;
+            const maxY = targetLane === 'p1' ? p1MaxY : p2MaxY;
+            const dir = targetLane === 'p2' ? -1 : 1;
+            obstacles.push(new SeaObstacle(w, minY, maxY, targetLane, dir));
+          }
+        }
+      }
+
+      tanks.forEach(t => {
+        const lanePaused = (t.laneId === 'p1' && p1.activeQuiz) || (t.laneId === 'p2' && p2.activeQuiz);
+        if (!lanePaused) t.update(dt);
+      });
+      tanks = tanks.filter(t => {
+        if (t.collected) return false;
+        return t.dir === 1 ? (t.x > -60) : (t.x < w + 60);
+      });
+
+      obstacles.forEach(o => {
+        const lanePaused = (o.laneId === 'p1' && p1.activeQuiz) || (o.laneId === 'p2' && p2.activeQuiz);
+        if (!lanePaused) o.update(dt);
+      });
+      obstacles = obstacles.filter(o => {
+        if (o.hit) return false;
+        return o.dir === 1 ? (o.x > -60) : (o.x < w + 60);
+      });
+
+      environment.update(dt);
+      p1.update(dt, p1MinY, p1MaxY);
+      if (isDuel) p2.update(dt, p2MinY, p2MaxY);
+
+      tanks.forEach(tank => {
+        if (!tank.collected) {
+          const targetSub = tank.laneId === 'p1' ? p1 : p2;
+          if (targetSub.alive && !targetSub.activeQuiz) {
+            const dist = Math.hypot(tank.x - targetSub.x, tank.y - targetSub.y);
+            if (dist < tank.radius + 36) {
+              tank.collected = true;
+              sound.playCollect();
+              triggerSubQuiz(targetSub);
+            }
+          }
+        }
+      });
+
+      obstacles.forEach(obs => {
+        if (!obs.hit) {
+          const targetSub = obs.laneId === 'p1' ? p1 : p2;
+          if (targetSub.alive && !targetSub.activeQuiz) {
+            const dist = Math.hypot(obs.x - targetSub.x, obs.y - targetSub.y);
+            if (dist < obs.radius + 32) {
+              obs.hit = true;
+              targetSub.oxygen = Math.max(0, targetSub.oxygen - 1);
+              sound.playDamage();
+              triggerDamageShake();
+              showPlayerToast(targetSub.id, `💥 ${targetSub.label} Tabrak Rintangan! (-1 O₂)`, 'danger');
+              renderOxygenHUD(targetSub);
+
+              if (targetSub.oxygen === 0) {
+                targetSub.alive = false;
+                sound.playDamage();
+                showPlayerToast(targetSub.id, `💀 ${targetSub.label} Karam!`, 'danger');
+                checkGlobalGameOver();
+              }
+            }
+          }
+        }
+      });
+
+      const leadDist = isDuel ? Math.max(p1.distance, p2.distance) : p1.distance;
+      const curDist = Math.min(FINISH_DISTANCE, Math.round(leadDist));
+      const distPct = Math.min(100, (leadDist / FINISH_DISTANCE) * 100);
+      document.getElementById('globalProgressBar').style.width = `${distPct}%`;
+      document.getElementById('raceLeaderDistText').textContent = `${curDist} / ${FINISH_DISTANCE}m`;
+
+      ctx.clearRect(0, 0, w, h);
+      environment.draw(ctx, w, h, isDuel);
+
+      drawFinishMarkers(ctx, w, h, isDuel);
+
+      tanks.forEach(t => t.draw(ctx));
+      obstacles.forEach(o => o.draw(ctx));
+      p1.draw(ctx);
+      if (isDuel) p2.draw(ctx);
+
+      if (p1.distance >= FINISH_DISTANCE + FINISH_CROSS_OFFSET || (isDuel && p2.distance >= FINISH_DISTANCE + FINISH_CROSS_OFFSET)) {
+        handleRaceFinish();
+        return;
+      }
+
+      requestAnimationFrame(mainGameLoop);
+    }
+
+    function drawFinishMarkers(c, w, h, isDuel) {
+      const drawLineP1 = (yStart, laneHeight, subDistance) => {
+        const remaining = FINISH_DISTANCE - subDistance;
+        if (remaining < (w - 70)) {
+          const finishX = 150 + remaining;
+          if (finishX > -80 && finishX < w + 80) {
+            c.save();
+            const sq = 16;
+            for (let y = yStart; y < yStart + laneHeight; y += sq) {
+              c.fillStyle = (Math.floor(y / sq) % 2 === 0) ? '#ffffff' : '#0f172a';
+              c.fillRect(finishX, y, sq, sq);
+              c.fillStyle = (Math.floor(y / sq) % 2 === 0) ? '#0f172a' : '#ffffff';
+              c.fillRect(finishX + sq, y, sq, sq);
+            }
+
+            c.fillStyle = 'rgba(56, 189, 248, 0.7)';
+            c.fillRect(finishX - 2, yStart, 2, laneHeight);
+            c.fillRect(finishX + sq * 2, yStart, 2, laneHeight);
+
+            c.fillStyle = '#f59e0b';
+            c.font = 'bold 14px Fredoka One';
+            c.shadowColor = 'rgba(0,0,0,0.8)';
+            c.shadowBlur = 6;
+            c.textAlign = 'left';
+            c.fillText('🏁 FINISH', finishX - 75, yStart + 28);
+            c.restore();
+          }
+        }
+      };
+
+      const drawLineP2 = (yStart, laneHeight, subDistance) => {
+        const remaining = FINISH_DISTANCE - subDistance;
+        if (remaining < (w - 70)) {
+          const finishX = (w - 150) - remaining;
+          if (finishX > -80 && finishX < w + 80) {
+            c.save();
+            const sq = 16;
+            for (let y = yStart; y < yStart + laneHeight; y += sq) {
+              c.fillStyle = (Math.floor(y / sq) % 2 === 0) ? '#ffffff' : '#0f172a';
+              c.fillRect(finishX, y, sq, sq);
+              c.fillStyle = (Math.floor(y / sq) % 2 === 0) ? '#0f172a' : '#ffffff';
+              c.fillRect(finishX + sq, y, sq, sq);
+            }
+
+            c.fillStyle = 'rgba(52, 211, 153, 0.7)';
+            c.fillRect(finishX - 2, yStart, 2, laneHeight);
+            c.fillRect(finishX + sq * 2, yStart, 2, laneHeight);
+
+            c.fillStyle = '#10b981';
+            c.font = 'bold 14px Fredoka One';
+            c.shadowColor = 'rgba(0,0,0,0.8)';
+            c.shadowBlur = 6;
+            c.textAlign = 'left';
+            c.fillText('🏁 FINISH', finishX + sq * 2 + 10, yStart + 28);
+            c.restore();
+          }
+        }
+      };
+
+      if (!isDuel) {
+        drawLineP1(0, h, p1.distance);
+      } else {
+        drawLineP1(0, h * 0.5, p1.distance);
+        drawLineP2(h * 0.5, h * 0.5, p2.distance);
+      }
+    }
+
+    function checkGlobalGameOver() {
+      if (selectedMode === 'solo') {
+        if (!p1.alive) {
+          endGame(false, 'Misi Gagal! Kapal selam kehabisan oksigen di samudra dalam.');
+        }
+      } else {
+        if (!p1.alive && !p2.alive) {
+          endGame(false, 'Kedua kapal selam karam kehabisan oksigen! Hasil Imbang.');
+        } else if (!p1.alive) {
+          sound.playVictory();
+          endGame(true, 'Player 2 (Kapal Hijau) MENANG! Player 1 karam kehabisan oksigen.');
+        } else if (!p2.alive) {
+          sound.playVictory();
+          endGame(true, 'Player 1 (Kapal Kuning) MENANG! Player 2 karam kehabisan oksigen.');
+        }
+      }
+    }
+
+    function handleRaceFinish() {
+      sound.playVictory();
+      if (selectedMode === 'solo') {
+        endGame(true, 'Selamat! Anda sukses menembus dan melintasi garis finish 5000m!');
+      } else {
+        if (p1.distance >= FINISH_DISTANCE + FINISH_CROSS_OFFSET && p2.distance >= FINISH_DISTANCE + FINISH_CROSS_OFFSET) {
+          const winner = p1.distance > p2.distance ? 'Player 1 (Kapal Kuning)' : 'Player 2 (Kapal Hijau)';
+          endGame(true, `${winner} Melintasi Garis Finish Terlebih Dahulu!`);
+        } else if (p1.distance >= FINISH_DISTANCE + FINISH_CROSS_OFFSET) {
+          endGame(true, 'Player 1 (Kapal Kuning) MENANG! Sukses Melewati Garis Finish!');
+        } else {
+          endGame(true, 'Player 2 (Kapal Hijau) MENANG! Sukses Melewati Garis Finish!');
+        }
+      }
+    }
+
+    function endGame(isWin, message) {
+      gameRunning = false;
+      sound.stopEngine();
+
+      const modal = document.getElementById('endModal');
+      const card = document.getElementById('endModalCard');
+      const title = document.getElementById('endTitle');
+      const subtitle = document.getElementById('endSubtitle');
+      const icon = document.getElementById('endIcon');
+      const stats = document.getElementById('endStatsContainer');
+
+      if (isWin) {
+        icon.textContent = '🏆👑';
+        title.textContent = 'MISI SELESAI!';
+        title.className = 'font-fredoka text-3xl text-emerald-400';
+        card.className = 'bg-gradient-to-b from-slate-900 to-slate-950 border-4 border-emerald-400 rounded-3xl p-5 sm:p-7 max-w-md w-full text-center shadow-2xl';
+      } else {
+        icon.textContent = '🤿💥';
+        title.textContent = 'MISI GAGAL!';
+        title.className = 'font-fredoka text-3xl text-rose-500';
+        card.className = 'bg-gradient-to-b from-slate-900 to-slate-950 border-4 border-rose-500 rounded-3xl p-5 sm:p-7 max-w-md w-full text-center shadow-2xl';
+      }
+
+      subtitle.textContent = message;
+
+      if (selectedMode === 'solo') {
+        stats.innerHTML = `
+          <div class="grid grid-cols-3 gap-2">
+            <div class="p-2.5 bg-slate-950/80 border border-cyan-500/30 rounded-2xl">
+              <span class="text-[10px] text-slate-400 font-bold block">JARAK</span>
+              <span class="font-fredoka text-base text-yellow-400">${Math.min(FINISH_DISTANCE, Math.round(p1.distance))}m</span>
+            </div>
+            <div class="p-2.5 bg-slate-950/80 border border-cyan-500/30 rounded-2xl">
+              <span class="text-[10px] text-slate-400 font-bold block">BENAR</span>
+              <span class="font-fredoka text-base text-emerald-400">${p1.correctCount} Soal</span>
+            </div>
+            <div class="p-2.5 bg-slate-950/80 border border-cyan-500/30 rounded-2xl">
+              <span class="text-[10px] text-slate-400 font-bold block">SISA O₂</span>
+              <span class="font-fredoka text-base text-cyan-400">${p1.oxygen} Bar</span>
+            </div>
+          </div>
+        `;
+      } else {
+        stats.innerHTML = `
+          <div class="grid grid-cols-2 gap-2 text-left">
+            <div class="p-2.5 bg-slate-950/90 border-2 border-yellow-400/50 rounded-2xl">
+              <span class="font-fredoka text-yellow-400 text-xs block mb-1">PLAYER 1 (KUNING)</span>
+              <div class="text-[11px] text-slate-300">Jarak: <strong>${Math.min(FINISH_DISTANCE, Math.round(p1.distance))}m</strong></div>
+              <div class="text-[11px] text-emerald-300">Benar: <strong>${p1.correctCount} Soal</strong></div>
+              <div class="text-[11px] text-cyan-300">Sisa O₂: <strong>${p1.oxygen} Bar</strong></div>
+            </div>
+            <div class="p-2.5 bg-slate-950/90 border-2 border-emerald-400/50 rounded-2xl">
+              <span class="font-fredoka text-emerald-400 text-xs block mb-1">PLAYER 2 (HIJAU)</span>
+              <div class="text-[11px] text-slate-300">Jarak: <strong>${Math.min(FINISH_DISTANCE, Math.round(p2.distance))}m</strong></div>
+              <div class="text-[11px] text-emerald-300">Benar: <strong>${p2.correctCount} Soal</strong></div>
+              <div class="text-[11px] text-cyan-300">Sisa O₂: <strong>${p2.oxygen} Bar</strong></div>
+            </div>
+          </div>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    const modeSoloBtn = document.getElementById('modeSoloBtn');
+    const modeDuelBtn = document.getElementById('modeDuelBtn');
+
+    function updateModeSelection(mode) {
+      selectedMode = mode;
+      const soloImg = modeSoloBtn.querySelector('img');
+      const duelImg = modeDuelBtn.querySelector('img');
+
+      if (mode === 'solo') {
+        modeSoloBtn.className = 'relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-amber-300 ring-2 sm:ring-4 ring-yellow-400/50 shadow-[0_0_14px_rgba(250,204,21,0.6)] cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-100';
+        if (soloImg) {
+          soloImg.style.filter = 'brightness(1.05) drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+          soloImg.style.opacity = '1';
+        }
+
+        modeDuelBtn.className = 'relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90';
+        if (duelImg) {
+          duelImg.style.filter = 'brightness(0.75) grayscale(25%)';
+          duelImg.style.opacity = '0.7';
+        }
+      } else {
+        modeSoloBtn.className = 'relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90';
+        if (soloImg) {
+          soloImg.style.filter = 'brightness(0.75) grayscale(25%)';
+          soloImg.style.opacity = '0.7';
+        }
+
+        modeDuelBtn.className = 'relative p-0.5 rounded-[18px] sm:rounded-[22px] border-2 border-cyan-300 ring-2 sm:ring-4 ring-cyan-400/50 shadow-[0_0_14px_rgba(6,182,212,0.6)] cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-100';
+        if (duelImg) {
+          duelImg.style.filter = 'brightness(1.05) drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+          duelImg.style.opacity = '1';
+        }
+      }
+    }
+
+    modeSoloBtn.addEventListener('click', () => updateModeSelection('solo'));
+    modeDuelBtn.addEventListener('click', () => updateModeSelection('duel'));
+
+    const opCheckboxes = [
+      document.getElementById('opAdd'),
+      document.getElementById('opSub'),
+      document.getElementById('opMul'),
+      document.getElementById('opDiv')
+    ];
+    const opWarningText = document.getElementById('opWarningText');
+
+    function syncOperationsUI() {
+      opCheckboxes.forEach(cb => {
+        const parentLabel = cb.closest('label');
+        const badge = parentLabel.querySelector('.op-check-badge');
+        if (cb.checked) {
+          parentLabel.className = 'op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-emerald-400 bg-gradient-to-b from-emerald-400 to-emerald-600 text-white cursor-pointer shadow-md transition active:scale-95';
+          if (badge) {
+            badge.textContent = '✓';
+            badge.className = 'op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-200 border border-emerald-800 text-emerald-950 text-[10px] font-black flex items-center justify-center';
+          }
+        } else {
+          parentLabel.className = 'op-capsule relative flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-2.5 rounded-full border-2 border-sky-400/60 bg-gradient-to-b from-sky-600/90 to-blue-700/90 text-sky-100 cursor-pointer shadow-md transition active:scale-95';
+          if (badge) {
+            badge.textContent = '○';
+            badge.className = 'op-check-badge w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-900/60 border border-sky-400/50 text-sky-200 text-[10px] font-black flex items-center justify-center';
+          }
+        }
+      });
+    }
+
+    function syncOperationsList() {
+      const active = opCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
+      if (active.length === 0) {
+        return false;
+      }
+      selectedOperations = active;
+      syncOperationsUI();
+      return true;
+    }
+
+    opCheckboxes.forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        if (!syncOperationsList()) {
+          e.target.checked = true;
+          syncOperationsList();
+          opWarningText.classList.remove('hidden');
+          setTimeout(() => opWarningText.classList.add('hidden'), 1800);
+        }
+      });
+    });
+
+    const diffEasyBtn = document.getElementById('diffEasyBtn');
+    const diffMedBtn = document.getElementById('diffMedBtn');
+    const diffHardBtn = document.getElementById('diffHardBtn');
+    const diffExtremeBtn = document.getElementById('diffExtremeBtn');
+
+    function updateDifficultyUI(level) {
+      currentDifficulty = level;
+
+      const buttons = [
+        { 
+          elem: diffEasyBtn, 
+          id: 'mudah', 
+          activeClass: 'border-2 border-emerald-300 ring-2 sm:ring-4 ring-emerald-400/50 shadow-[0_0_12px_rgba(52,211,153,0.6)] opacity-100'
+        },
+        { 
+          elem: diffMedBtn, 
+          id: 'sedang', 
+          activeClass: 'border-2 border-amber-300 ring-2 sm:ring-4 ring-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.6)] opacity-100'
+        },
+        { 
+          elem: diffHardBtn, 
+          id: 'sulit', 
+          activeClass: 'border-2 border-orange-400 ring-2 sm:ring-4 ring-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.6)] opacity-100'
+        },
+        { 
+          elem: diffExtremeBtn, 
+          id: 'extreme', 
+          activeClass: 'border-2 border-rose-400 ring-2 sm:ring-4 ring-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.6)] opacity-100'
+        }
+      ];
+
+      buttons.forEach(b => {
+        const img = b.elem.querySelector('img');
+        if (b.id === level) {
+          b.elem.className = `diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] ${b.activeClass} cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden`;
+          if (img) {
+            img.style.filter = 'brightness(1.05) drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+            img.style.opacity = '1';
+          }
+        } else {
+          b.elem.className = 'diff-btn relative p-0.5 rounded-[16px] sm:rounded-[20px] border-2 border-slate-600/50 shadow-md cursor-pointer transform active:scale-95 transition flex items-center justify-center bg-transparent overflow-hidden opacity-60 hover:opacity-90';
+          if (img) {
+            img.style.filter = 'brightness(0.75) grayscale(20%)';
+            img.style.opacity = '0.7';
+          }
+        }
+      });
+    }
+
+    diffEasyBtn.addEventListener('click', () => updateDifficultyUI('mudah'));
+    diffMedBtn.addEventListener('click', () => updateDifficultyUI('sedang'));
+    diffHardBtn.addEventListener('click', () => updateDifficultyUI('sulit'));
+    diffExtremeBtn.addEventListener('click', () => updateDifficultyUI('extreme'));
+
+    document.getElementById('startPlayBtn').addEventListener('click', startGame);
+    document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+    const backToMenu = () => {
+      gameRunning = false;
+      sound.stopEngine();
+      document.getElementById('p1CtrlPanel').classList.add('hidden');
+      document.getElementById('p1OxygenBox').classList.add('hidden');
+      document.getElementById('p2CtrlPanel').classList.add('hidden');
+      document.getElementById('p2OxygenBox').classList.add('hidden');
+      document.getElementById('p1QuizCard').classList.add('hidden');
+      document.getElementById('p2QuizCard').classList.add('hidden');
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('startModal').classList.remove('hidden');
+      requestAnimationFrame(idleLoop);
+    };
+
+    document.getElementById('menuReturnBtn').addEventListener('click', backToMenu);
+    document.getElementById('exitToMenuBtn').addEventListener('click', backToMenu);
+
+    const audioToggle = document.getElementById('audioToggleBtn');
+    audioToggle.addEventListener('click', () => {
+      sound.muted = !sound.muted;
+      audioToggle.textContent = sound.muted ? '🔇' : '🔊';
+      if (sound.muted) {
+        sound.stopEngine();
+      } else if (gameRunning) {
+        sound.startEngine();
+      }
+    });
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+    const fullscreenText = document.getElementById('fullscreenText');
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    function updateFullscreenUI() {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (fullscreenIcon) {
+        fullscreenIcon.textContent = isFs ? '🗗' : '⛶';
+      }
+      if (fullscreenText) {
+        fullscreenText.textContent = isFs ? 'KELUAR' : 'FULLSCREEN';
+      }
+      setTimeout(resizeCanvas, 150);
+    }
+
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', toggleFullScreen);
+    }
+    document.addEventListener('fullscreenchange', updateFullscreenUI);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+
+    function idleLoop(now) {
+      if (gameRunning) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        if (canvas.width !== rect.width || canvas.height !== rect.height) {
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+        }
+        environment.update(0.016);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        environment.draw(ctx, canvas.width, canvas.height, false);
+      }
+      requestAnimationFrame(idleLoop);
+    }
+
+    window.onload = () => {
+      resizeCanvas();
+      requestAnimationFrame(idleLoop);
+    };
+  </script>
+</body>
+</html>
